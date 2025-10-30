@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "BlueToothScoreKeeper"
 include(":app")
- 
+include(":wear")
