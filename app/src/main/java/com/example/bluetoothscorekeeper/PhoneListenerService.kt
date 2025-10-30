@@ -1,7 +1,6 @@
 package com.example.bluetoothscorekeeper
 
 import android.util.Log
-import androidx.compose.material3.carousel.Strategy
 import com.google.android.gms.nearby.Nearby
 import com.google.android.gms.nearby.connection.*
 import com.google.android.gms.nearby.connection.ConnectionsClient
