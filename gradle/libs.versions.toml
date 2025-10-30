@@ -13,6 +13,8 @@ composeMaterial = "1.2.1"
 composeFoundation = "1.2.1"
 wearToolingPreview = "1.0.0"
 coreSplashscreen = "1.0.1"
+material3 = "1.4.0"
+playServicesNearby = "19.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,6 +36,8 @@ androidx-compose-material = { group = "androidx.wear.compose", name = "compose-m
 androidx-compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "composeFoundation" }
 androidx-wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview", version.ref = "wearToolingPreview" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+play-services-nearby = { group = "com.google.android.gms", name = "play-services-nearby", version.ref = "playServicesNearby" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

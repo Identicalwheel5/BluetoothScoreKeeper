@@ -1,72 +1,61 @@
-/* While this template provides a good starting point for using Wear Compose, you can always
- * take a look at https://github.com/android/wear-os-samples/tree/main/ComposeStarter to find the
- * most up to date changes to the libraries and their usages.
- */
-
-package com.example.wear.presentation
+package com.example.wear.presentation // Your actual package name may be different, check the file!
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.wear.compose.material.MaterialTheme
+import androidx.compose.ui.unit.dp
+import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.TimeText
-import androidx.wear.tooling.preview.devices.WearDevices
-import com.example.wear.R
-import com.example.wear.presentation.theme.BlueToothScoreKeeperTheme
+import com.google.android.gms.tasks.Task
+import com.google.android.gms.wearable.DataClient
+import com.google.android.gms.wearable.DataItem
+import com.google.android.gms.wearable.PutDataMapRequest
+import com.google.android.gms.wearable.Wearable
+import com.example.wear.presentation.WearableConstants // IMPORTANT: Import your constants file!
 
 class MainActivity : ComponentActivity() {
+
+    // 1. Initialize the DataClient for the Wearable Data Layer API
+    private val dataClient: DataClient by lazy { Wearable.getDataClient(this) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
-
         super.onCreate(savedInstanceState)
-
-        setTheme(android.R.style.Theme_DeviceDefault)
-
         setContent {
-            WearApp("Android")
+            // Your custom composable for the watch UI
+            WearApp(
+                onScoreUpdate = { command -> sendScoreUpdate(command) }
+            )
         }
     }
-}
 
-@Composable
-fun WearApp(greetingName: String) {
-    BlueToothScoreKeeperTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colors.background),
-            contentAlignment = Alignment.Center
-        ) {
-            TimeText()
-            Greeting(greetingName = greetingName)
+    // --- Data Sending Function ---
+    private fun sendScoreUpdate(command: String) {
+        // 2. Create the DataMap request using the shared path
+        val dataMapRequest = PutDataMapRequest.create(WearableConstants.SCORE_UPDATE_PATH).apply {
+            // Add the command and a unique timestamp (crucial for sending duplicate taps)
+            dataMap.putString(WearableConstants.COMMAND_KEY, command)
+            dataMap.putLong(WearableConstants.TIMESTAMP_KEY, System.currentTimeMillis())
+        }
+
+        // 3. Convert to PutDataRequest and mark it as URGENT
+        val request = dataMapRequest.asPutDataRequest().setUrgent()
+
+        // 4. Send the data item
+        val putTask: Task<DataItem> = dataClient.putDataItem(request)
+
+        putTask.addOnSuccessListener {
+            Toast.makeText(this, "Score Sent: $command", Toast.LENGTH_SHORT).show()
+        }
+        putTask.addOnFailureListener {
+            Toast.makeText(this, "Send FAILED", Toast.LENGTH_SHORT).show()
         }
     }
-}
-
-@Composable
-fun Greeting(greetingName: String) {
-    Text(
-        modifier = Modifier.fillMaxWidth(),
-        textAlign = TextAlign.Center,
-        color = MaterialTheme.colors.primary,
-        text = stringResource(R.string.hello_world, greetingName)
-    )
-}
-
-@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    WearApp("Preview Android")
 }
