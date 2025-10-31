@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 fun ScoreboardScreen(player1Score: Int, player2Score: Int, connectionStatus: String, isConnected: Boolean) {
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background // Use default background
+        color = MaterialTheme.colorScheme.background
     ) {
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp),

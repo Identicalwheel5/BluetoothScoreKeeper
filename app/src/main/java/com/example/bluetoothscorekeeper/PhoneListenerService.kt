@@ -3,37 +3,40 @@ package com.example.bluetoothscorekeeper
 import android.util.Log
 import com.google.android.gms.nearby.Nearby
 import com.google.android.gms.nearby.connection.*
-import com.google.android.gms.nearby.connection.ConnectionsClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.WearableListenerService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.nio.charset.StandardCharsets
 
 class PhoneListenerService : WearableListenerService() {
 
     private val TAG = "PhoneService"
 
-    // 1. Nearby Connections setup constants
-    private val SERVICE_ID = "com.example.bluetoothscorekeeper" // Must be unique and match the tablet
-    private val STRATEGY = Strategy.P2P_POINT_TO_POINT // Direct 1:1 connection
+    private val SERVICE_ID = WearableConstants.SCORE_UPDATE_PATH
+    private val STRATEGY = Strategy.P2P_POINT_TO_POINT
 
-    // 2. Nearby Connections Clients and State
     private lateinit var connectionsClient: ConnectionsClient
-    private var connectedEndpointId: String? = null // To track the Tablet connection
+    private var connectedEndpointId: String? = null
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.IO + job)
 
     // --- Lifecycle and Initialization ---
 
     override fun onCreate() {
         super.onCreate()
         connectionsClient = Nearby.getConnectionsClient(this)
-        startAdvertising() // Start broadcasting our presence immediately
+        startAdvertising() // CRUCIAL: Start broadcasting immediately
     }
 
     override fun onDestroy() {
-        // Stop advertising and disconnect everything when the service is destroyed
         connectionsClient.stopAdvertising()
         connectionsClient.stopAllEndpoints()
+        job.cancel()
         super.onDestroy()
     }
 
@@ -41,6 +44,7 @@ class PhoneListenerService : WearableListenerService() {
 
     override fun onDataChanged(dataEvents: DataEventBuffer) {
         super.onDataChanged(dataEvents)
+        Log.d(TAG, "Data received from Wear OS.")
 
         dataEvents.forEach { event ->
             if (event.type == DataEvent.TYPE_CHANGED &&
@@ -50,6 +54,10 @@ class PhoneListenerService : WearableListenerService() {
                 val command = dataMap.getString(WearableConstants.COMMAND_KEY)
 
                 Log.i(TAG, "Watch Command Received: $command")
+                scope.launch {
+                    command?.let { ScoreUpdateRepository.newCommand(it) }
+                }
+
                 forwardCommandToTablet(command)
             }
         }
@@ -59,7 +67,7 @@ class PhoneListenerService : WearableListenerService() {
 
     private fun startAdvertising() {
         connectionsClient.startAdvertising(
-            "SCORE_SERVER_PHONE", // Name to show the tablet
+            "SCORE_SERVER_PHONE",
             SERVICE_ID,
             connectionLifecycleCallback,
             AdvertisingOptions.Builder().setStrategy(STRATEGY).build()
@@ -70,11 +78,10 @@ class PhoneListenerService : WearableListenerService() {
         }
     }
 
-    // --- Nearby Connections Callbacks (Handling the Tablet Connection) ---
+    // --- Nearby Connections Callbacks ---
 
     private val connectionLifecycleCallback = object : ConnectionLifecycleCallback() {
         override fun onConnectionInitiated(endpointId: String, info: ConnectionInfo) {
-            // A tablet found us and wants to connect. Auto-accept for simplicity.
             connectionsClient.acceptConnection(endpointId, payloadCallback)
             Log.d(TAG, "Connection initiated with: ${info.endpointName}")
         }
@@ -83,10 +90,7 @@ class PhoneListenerService : WearableListenerService() {
             when (result.status.statusCode) {
                 ConnectionsStatusCodes.SUCCESS -> {
                     Log.i(TAG, "Connected to Tablet: $endpointId")
-                    connectedEndpointId = endpointId // Save ID for sending data later
-                }
-                ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED -> {
-                    Log.w(TAG, "Connection rejected by Tablet.")
+                    connectedEndpointId = endpointId
                 }
                 ConnectionsStatusCodes.STATUS_ERROR -> {
                     Log.e(TAG, "Connection error with Tablet.")
@@ -97,16 +101,13 @@ class PhoneListenerService : WearableListenerService() {
 
         override fun onDisconnected(endpointId: String) {
             Log.w(TAG, "Disconnected from Tablet: $endpointId")
-            connectedEndpointId = null // Reset the connection ID
-            startAdvertising() // Restart advertising to allow the tablet to reconnect
+            connectedEndpointId = null
+            startAdvertising()
         }
     }
 
-    // We don't expect the tablet to send data back, so we use a minimal PayloadCallback
     private val payloadCallback = object : PayloadCallback() {
-        override fun onPayloadReceived(endpointId: String, payload: Payload) {
-            // Tablet might send status, but we primarily send data TO the tablet
-        }
+        override fun onPayloadReceived(endpointId: String, payload: Payload) {}
         override fun onPayloadTransferUpdate(endpointId: String, update: PayloadTransferUpdate) {}
     }
 
@@ -118,10 +119,8 @@ class PhoneListenerService : WearableListenerService() {
             return
         }
 
-        // Convert the string command into a Payload object
         val payload = Payload.fromBytes(command.toByteArray(StandardCharsets.UTF_8))
 
-        // Send the payload to the connected Tablet
         connectionsClient.sendPayload(connectedEndpointId!!, payload)
             .addOnSuccessListener {
                 Log.d(TAG, "Successfully forwarded command to Tablet: $command")

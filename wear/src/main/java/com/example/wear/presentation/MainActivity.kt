@@ -1,4 +1,4 @@
-package com.example.wear.presentation // Your actual package name may be different, check the file!
+package com.example.wear.presentation
 
 import android.os.Bundle
 import android.widget.Toast
@@ -19,36 +19,29 @@ import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataItem
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
-import com.example.wear.presentation.WearableConstants // IMPORTANT: Import your constants file!
+import com.example.wear.presentation.WearableConstants
 
 class MainActivity : ComponentActivity() {
 
-    // 1. Initialize the DataClient for the Wearable Data Layer API
     private val dataClient: DataClient by lazy { Wearable.getDataClient(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // Your custom composable for the watch UI
             WearApp(
-                onScoreUpdate = { command -> sendScoreUpdate(command) }
+                onScoreUpdate = { command: String -> sendScoreUpdate(command) }
             )
         }
     }
 
-    // --- Data Sending Function ---
     private fun sendScoreUpdate(command: String) {
-        // 2. Create the DataMap request using the shared path
         val dataMapRequest = PutDataMapRequest.create(WearableConstants.SCORE_UPDATE_PATH).apply {
-            // Add the command and a unique timestamp (crucial for sending duplicate taps)
             dataMap.putString(WearableConstants.COMMAND_KEY, command)
             dataMap.putLong(WearableConstants.TIMESTAMP_KEY, System.currentTimeMillis())
         }
 
-        // 3. Convert to PutDataRequest and mark it as URGENT
         val request = dataMapRequest.asPutDataRequest().setUrgent()
 
-        // 4. Send the data item
         val putTask: Task<DataItem> = dataClient.putDataItem(request)
 
         putTask.addOnSuccessListener {
@@ -59,3 +52,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

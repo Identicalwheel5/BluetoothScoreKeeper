@@ -11,7 +11,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.wear"
+        applicationId = "com.example.bluetoothscorekeeper"
         minSdk = 30
         targetSdk = 36
         versionCode = 1

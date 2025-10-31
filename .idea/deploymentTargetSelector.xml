@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-10-30T21:38:04.466810300Z">
+        <DropdownSelection timestamp="2025-10-31T04:45:17.373551200Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\ident\.android\avd\Pixel_9_Pro.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\ident\.android\avd\Medium_Tablet.avd" />
             </handle>
           </Target>
         </DropdownSelection>
@@ -15,6 +15,14 @@
       </SelectionState>
       <SelectionState runConfigName="wear">
         <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2025-10-31T04:44:36.083010600Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\ident\.android\avd\Medium_Tablet.avd" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
       </SelectionState>
     </selectionStates>
   </component>

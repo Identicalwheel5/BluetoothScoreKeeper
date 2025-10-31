@@ -21,13 +21,10 @@ fun WearApp(onScoreUpdate: (command: String) -> Unit) {
         // Button for Player 1
         Button(
             onClick = { onScoreUpdate(WearableConstants.PLAYER_1_INC) },
-            // Make the button stretch for easier tapping
             modifier = Modifier.weight(1f).fillMaxSize()
         ) {
             Text("Player 1 +1", modifier = Modifier.padding(10.dp))
         }
-
-        // Spacer or divider could go here if needed
 
         // Button for Player 2
         Button(
