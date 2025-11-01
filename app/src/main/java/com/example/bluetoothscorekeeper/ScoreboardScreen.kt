@@ -17,7 +17,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun ScoreboardScreen(player1Score: Int, player2Score: Int, connectionStatus: String, isConnected: Boolean) {
+fun ScoreboardScreen(
+    player1Score: Int,
+    player2Score: Int,
+    connectionStatus: String,
+    isConnected: Boolean,
+    onPlayer1Inc: () -> Unit,
+    onPlayer2Inc: () -> Unit,
+    onResetScores: () -> Unit
+) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background

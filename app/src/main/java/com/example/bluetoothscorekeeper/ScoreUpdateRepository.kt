@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
 object ScoreUpdateRepository {
-    private val _scoreCommand = MutableSharedFlow<String>(replay = 1)
+    private val _scoreCommand = MutableSharedFlow<String>(replay = 0)
     val scoreCommand = _scoreCommand.asSharedFlow()
 
     suspend fun newCommand(command: String) {
