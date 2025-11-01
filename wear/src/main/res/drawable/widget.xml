@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Root layout is a LinearLayout.
+FIX: Added the 'tools' namespace to help the Android Studio preview render correctly.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+    <group>
+        <!-- Outer frame of the scoreboard -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="1.5"
+            android:pathData="M19,5H5C3.89,5 3,5.89 3,7V17C3,18.11 3.89,19 5,19H19C20.11,19 21,18.11 21,17V7C21,5.89 20.11,5 19,5Z"/>
+
+        <!-- Divider for two score areas -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="1.5"
+            android:pathData="M12,5V19"/>
+
+        <!-- Player 1 Score Indicator (Top Left - Red circle) -->
+        <path
+            android:fillColor="#FF5252"
+            android:pathData="M8,10m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
+
+        <!-- Player 2 Score Indicator (Top Right - Blue circle) -->
+        <path
+            android:fillColor="#448AFF"
+            android:pathData="M16,10m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
+
+        <!-- Control Buttons / Plus signs (Bottom) -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M6,16H10M8,14V18"/>
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M14,16H18M16,14V18"/>
+    </group>
+</vector>
