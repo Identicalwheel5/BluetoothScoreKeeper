@@ -87,7 +87,8 @@ fun WinnerScreen(winner: String) {
                 text = winner,
                 fontSize = 80.sp, // Larger text for the winner's name
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = Color.White,
+                textAlign = TextAlign.Center
             )
             Text(
                 text = "is the Winner!",
