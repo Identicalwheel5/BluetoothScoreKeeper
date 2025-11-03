@@ -44,6 +44,7 @@ class MainActivity : ComponentActivity() {
     private var connectionStatus by mutableStateOf("Ready")
     private var isConnected by mutableStateOf(false)
     private var deviceRole by mutableStateOf<DeviceRole?>(null)
+    private var hasEverConnected by mutableStateOf(false) // UI stability
     // --- END NEARBY CONNECTIONS ---
 
     private val requestPermissionLauncher =
@@ -93,16 +94,17 @@ class MainActivity : ComponentActivity() {
                 connectionsClient.stopDiscovery()   // Client stops discovering
                 connectionStatus = "Connected to ${if (deviceRole == DeviceRole.HOST) "Tablet" else "Phone"}"
                 isConnected = true
+                hasEverConnected = true // Set the flag on first successful connection
                 connectedEndpointId = endpointId
             } else {
                 Log.e(TAG_PHONE, "❌ CONNECTION FAILED: Code ${result.status.statusCode}")
-                connectionStatus = "Connection failed"
+                connectionStatus = if (hasEverConnected) "Reconnection Failed" else "Connection Failed"
                 isConnected = false
                 connectedEndpointId = null // Ensure we don't think we're connected
                 // If the connection fails, restart the process for the device's role.
                 when(deviceRole) {
                     DeviceRole.HOST -> startAdvertising()
-                    DeviceRole.CLIENT -> startDiscovery()
+                    DeviceRole.CLIENT -> startDiscovery() // Client will try to find a host again
                     null -> { /* do nothing */ }
                 }
             }
@@ -110,10 +112,10 @@ class MainActivity : ComponentActivity() {
 
         override fun onDisconnected(endpointId: String) {
             Log.w(TAG_PHONE, "⚠️ DISCONNECTED from endpoint $endpointId")
-            connectionStatus = "Disconnected"
+            connectionStatus = "Reconnecting..."
             isConnected = false
             connectedEndpointId = null
-            // Go back to the beginning state for the role.
+            // Go back to the beginning state for the role to attempt reconnection.
             when (deviceRole) {
                 DeviceRole.HOST -> startAdvertising()
                 DeviceRole.CLIENT -> startDiscovery()
@@ -203,6 +205,7 @@ class MainActivity : ComponentActivity() {
                     null -> RoleSelectionScreen(
                         onHostSelected = {
                             deviceRole = DeviceRole.HOST
+                            hasEverConnected = false // Reset on role selection
                             if (arePermissionsGranted()) {
                                 startAdvertising()
                             } else {
@@ -211,6 +214,7 @@ class MainActivity : ComponentActivity() {
                         },
                         onClientSelected = {
                             deviceRole = DeviceRole.CLIENT
+                            hasEverConnected = false // Reset on role selection
                             if (arePermissionsGranted()) {
                                 startDiscovery()
                             } else {
@@ -219,7 +223,8 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                     DeviceRole.HOST, DeviceRole.CLIENT -> {
-                        if (deviceRole == DeviceRole.CLIENT && !isConnected) {
+                        // Show searching screen ONLY if we are a client that has NEVER connected.
+                        if (deviceRole == DeviceRole.CLIENT && !hasEverConnected) {
                             // Client-specific "searching" screen
                             Column(
                                 modifier = Modifier.fillMaxSize(),
@@ -230,7 +235,7 @@ class MainActivity : ComponentActivity() {
                                 Text(connectionStatus, style = MaterialTheme.typography.bodyMedium)
                             }
                         } else {
-                            // Host and connected Client show the scoreboard
+                            // Host and connected/reconnecting/disconnected Client show the scoreboard
                             ScoreboardScreen(
                                 player1Score = player1Score,
                                 player2Score = player2Score,
@@ -254,6 +259,7 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG_PHONE, "All endpoints stopped.")
         // Reset role on exit, so it asks again on next launch
         deviceRole = null
+        hasEverConnected = false
     }
 
     private fun startAdvertising() {
